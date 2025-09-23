@@ -1,0 +1,106 @@
+@startuml tutor_platform_core_erd
+
+!define PRIMARY_KEY(x) **PK** x
+!define FOREIGN_KEY(x) **FK** x
+!theme carbon-gray
+
+skinparam arrow {
+	Thickness 1
+	Color #262626
+	FontColor #262626
+}
+
+title Система репетиторів - Основна ER Діаграма
+
+left to right direction
+
+entity "User" as user {
+  PRIMARY_KEY(user_id)
+  --
+  first_name
+  last_name
+  email
+  phone
+  role
+  registration_date
+}
+
+entity "Student" as student {
+  PRIMARY_KEY(student_id)
+  --
+  FOREIGN_KEY(user_id)
+  school_grade
+  city
+}
+
+entity "Tutor" as tutor {
+  PRIMARY_KEY(tutor_id)
+  --
+  FOREIGN_KEY(user_id)
+  education
+  experience_years
+  city
+  rating
+}
+
+entity "Schedule" as schedule {
+  PRIMARY_KEY(schedule_id)
+  --
+  FOREIGN_KEY(tutor_id)
+  day_of_week
+  start_time
+  end_time
+  is_available
+}
+
+entity "Subject" as subject {
+  PRIMARY_KEY(subject_id)
+  --
+  name
+  category
+}
+
+entity "Tutor_Subject" as tutor_subject {
+  PRIMARY_KEY(tutor_subject_id)
+  --
+  FOREIGN_KEY(tutor_id)
+  FOREIGN_KEY(subject_id)
+  price
+  format_online
+  format_offline
+}
+
+entity "Lesson" as lesson {
+  PRIMARY_KEY(lesson_id)
+  --
+  FOREIGN_KEY(student_id)
+  FOREIGN_KEY(tutor_subject_id)
+  lesson_date
+  start_time
+  duration_minutes
+  status
+}
+
+entity "Review" as review {
+  PRIMARY_KEY(review_id)
+  --
+  FOREIGN_KEY(lesson_id)
+  rating
+  comment
+  is_anonymous
+  created_date
+}
+
+user ||--o| student : "1:0..1"
+user ||--o| tutor : "1:0..1"
+
+tutor ||--|{ tutor_subject : "1:N"
+subject ||--|{ tutor_subject : "1:N"
+
+student ||--o{ lesson : "1:N"
+tutor_subject ||--o{ lesson : "1:N"
+
+lesson ||--o| review : "1:1"
+tutor ||--o{ schedule : "1:N"
+
+@enduml
