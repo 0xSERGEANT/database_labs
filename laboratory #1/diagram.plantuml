@@ -75,6 +75,7 @@ entity "Lesson" as lesson {
   --
   FOREIGN_KEY(student_id)
   FOREIGN_KEY(tutor_subject_id)
+  FOREIGN_KEY(schedule_id)
   lesson_date
   start_time
   duration_minutes
@@ -102,5 +103,6 @@ tutor_subject ||--o{ lesson : "1:N"
 
 lesson ||--o| review : "1:1"
 tutor ||--o{ schedule : "1:N"
+schedule ||--o{ lesson : "1:N"
 
 @enduml
