@@ -1,7 +1,8 @@
 @startuml tutor_platform_core_erd
 
-!define PRIMARY_KEY(x) **PK** x
-!define FOREIGN_KEY(x) **FK** x
+!define PF_KEY(x) **PK & FK** x
+!define P_KEY(x) **PK** x
+!define F_KEY(x) **FK** x
 !theme carbon-gray
 
 skinparam arrow {
@@ -15,7 +16,7 @@ title Система репетиторів - Основна ER Діаграма
 left to right direction
 
 entity "User" as user {
-  PRIMARY_KEY(user_id)
+  P_KEY(user_id)
   --
   first_name
   last_name
@@ -26,17 +27,15 @@ entity "User" as user {
 }
 
 entity "Student" as student {
-  PRIMARY_KEY(student_id)
+  PF_KEY(student_id) → User(user_id)
   --
-  FOREIGN_KEY(user_id)
   school_grade
   city
 }
 
 entity "Tutor" as tutor {
-  PRIMARY_KEY(tutor_id)
+  PF_KEY(tutor_id) → User(user_id)
   --
-  FOREIGN_KEY(user_id)
   education
   experience_years
   city
@@ -44,9 +43,9 @@ entity "Tutor" as tutor {
 }
 
 entity "Schedule" as schedule {
-  PRIMARY_KEY(schedule_id)
+  P_KEY(schedule_id)
   --
-  FOREIGN_KEY(tutor_id)
+  F_KEY(tutor_id)
   day_of_week
   start_time
   end_time
@@ -54,28 +53,28 @@ entity "Schedule" as schedule {
 }
 
 entity "Subject" as subject {
-  PRIMARY_KEY(subject_id)
+  P_KEY(subject_id)
   --
   name
   category
 }
 
 entity "Tutor_Subject" as tutor_subject {
-  PRIMARY_KEY(tutor_subject_id)
+  P_KEY(tutor_subject_id)
   --
-  FOREIGN_KEY(tutor_id)
-  FOREIGN_KEY(subject_id)
+  F_KEY(tutor_id)
+  F_KEY(subject_id)
   price
   format_online
   format_offline
 }
 
 entity "Lesson" as lesson {
-  PRIMARY_KEY(lesson_id)
+  P_KEY(lesson_id)
   --
-  FOREIGN_KEY(student_id)
-  FOREIGN_KEY(tutor_subject_id)
-  FOREIGN_KEY(schedule_id)
+  F_KEY(student_id)
+  F_KEY(tutor_subject_id)
+  F_KEY(schedule_id)
   lesson_date
   start_time
   duration_minutes
@@ -83,17 +82,17 @@ entity "Lesson" as lesson {
 }
 
 entity "Review" as review {
-  PRIMARY_KEY(review_id)
+  P_KEY(review_id)
   --
-  FOREIGN_KEY(lesson_id)
+  F_KEY(lesson_id)
   rating
   comment
   is_anonymous
   created_date
 }
 
-user ||--o| student : "1:0..1"
-user ||--o| tutor : "1:0..1"
+user ||--|| student : "1:1"
+user ||--|| tutor : "1:1"
 
 tutor ||--|{ tutor_subject : "1:N"
 subject ||--|{ tutor_subject : "1:N"
