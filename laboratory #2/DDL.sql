@@ -24,15 +24,6 @@ CREATE TABLE IF NOT EXISTS "city"
     region VARCHAR(100),
     country VARCHAR(100) NOT NULL DEFAULT 'Україна',
 
-    CONSTRAINT city_name_not_empty
-        CHECK (TRIM(name) != ''),
-    CONSTRAINT city_country_not_empty
-        CHECK (TRIM(country) != ''),
-    CONSTRAINT city_name_capitalized
-        CHECK (LEFT(TRIM(name), 1) = UPPER(LEFT(TRIM(name), 1))),
-    CONSTRAINT city_country_capitalized
-        CHECK (LEFT(TRIM(country), 1) = UPPER(LEFT(TRIM(country), 1))),
-
     CONSTRAINT city_unique_location
         UNIQUE (name, region, country)
 );
@@ -44,8 +35,6 @@ CREATE TABLE IF NOT EXISTS "subject"
     category subject_category NOT NULL,
     description TEXT,
 
-    CONSTRAINT subject_name_not_empty
-        CHECK (TRIM(name) != ''),
     CONSTRAINT subject_description_length
         CHECK (LENGTH(description) <= 500)
 );
@@ -56,9 +45,7 @@ CREATE TABLE IF NOT EXISTS "teaching_level"
     name VARCHAR(100) NOT NULL UNIQUE,
     position SMALLINT NOT NULL UNIQUE,
     description TEXT,
-
-    CONSTRAINT level_name_not_empty
-        CHECK (TRIM(name) != ''),
+  
     CONSTRAINT level_position_positive
         CHECK (position > 0),
     CONSTRAINT level_description_length
@@ -74,16 +61,7 @@ CREATE TABLE IF NOT EXISTS "user"
     last_name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     user_type user_type NOT NULL,
-    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT user_valid_email
-        CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
-    CONSTRAINT user_first_name_not_empty
-        CHECK (TRIM(first_name) != ''),
-    CONSTRAINT user_last_name_not_empty
-        CHECK (TRIM(last_name) != ''),
-    CONSTRAINT user_phone_format
-        CHECK (phone IS NULL OR phone ~* '^\+?[0-9\s\-\(\)]{10,20}$')
+    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS "student"
@@ -97,11 +75,6 @@ CREATE TABLE IF NOT EXISTS "student"
         FOREIGN KEY (student_id) REFERENCES "user" (user_id) ON DELETE CASCADE,
     CONSTRAINT student_city_fk
         FOREIGN KEY (city_id) REFERENCES "city" (city_id) ON DELETE SET NULL,
-
-    CONSTRAINT student_valid_age
-        CHECK (age >= 5 AND age <= 99),
-    CONSTRAINT student_valid_grade
-        CHECK (school_grade BETWEEN 1 AND 11 OR school_grade IS NULL)
 );
 
 CREATE TABLE IF NOT EXISTS "tutor"
@@ -123,14 +96,6 @@ CREATE TABLE IF NOT EXISTS "tutor"
     CONSTRAINT tutor_city_fk
         FOREIGN KEY (city_id) REFERENCES "city" (city_id) ON DELETE SET NULL,
 
-    CONSTRAINT tutor_valid_age
-        CHECK (age >= 18 AND age <= 99),
-    CONSTRAINT tutor_valid_experience
-        CHECK (years_experience >= 0 AND years_experience <= (age - 16)),
-    CONSTRAINT tutor_valid_rating
-        CHECK (average_rating >= 0.00 AND average_rating <= 5.00),
-    CONSTRAINT tutor_positive_reviews
-        CHECK (total_reviews >= 0),
     CONSTRAINT tutor_availability_check
         CHECK (online_available = TRUE OR offline_available = TRUE),
     CONSTRAINT tutor_offline_requirements
@@ -138,8 +103,6 @@ CREATE TABLE IF NOT EXISTS "tutor"
             offline_available = FALSE OR
             (offline_available = TRUE AND city_id IS NOT NULL AND address IS NOT NULL)
             ),
-    CONSTRAINT tutor_education_not_empty
-        CHECK (TRIM(education) != ''),
     CONSTRAINT tutor_about_me_length
         CHECK (LENGTH(about_me) <= 2000),
     CONSTRAINT tutor_address_length
@@ -161,8 +124,6 @@ CREATE TABLE IF NOT EXISTS "tutor_subject"
     CONSTRAINT ts_level_fk
         FOREIGN KEY (level_id) REFERENCES "teaching_level" (level_id) ON DELETE CASCADE,
 
-    CONSTRAINT ts_hourly_rate_range_check
-        CHECK (hourly_rate > 0 AND hourly_rate <= 10000.00),
     CONSTRAINT ts_unique_combination
         UNIQUE (tutor_id, subject_id, level_id)
 );
@@ -236,8 +197,6 @@ CREATE TABLE IF NOT EXISTS "review"
     CONSTRAINT review_tutor_fk
         FOREIGN KEY (tutor_id) REFERENCES "tutor" (tutor_id) ON DELETE CASCADE,
 
-    CONSTRAINT review_valid_rating
-        CHECK (rating >= 1 AND rating <= 5),
     CONSTRAINT review_comment_length
         CHECK (length(comment) <= 1500)
 );
