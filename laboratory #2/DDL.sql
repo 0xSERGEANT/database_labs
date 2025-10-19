@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS "student"
     CONSTRAINT student_user_fk
         FOREIGN KEY (student_id) REFERENCES "user" (user_id) ON DELETE CASCADE,
     CONSTRAINT student_city_fk
-        FOREIGN KEY (city_id) REFERENCES "city" (city_id) ON DELETE SET NULL,
+        FOREIGN KEY (city_id) REFERENCES "city" (city_id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS "tutor"
