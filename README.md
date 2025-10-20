@@ -29,10 +29,9 @@
 - Заповнити базу даних тестовими даними
 
 **Результати:**
-- Повний DDL скрипт ([scripts/DDL.sql](scripts/DDL.sql))
-- Скрипт наповнення даними ([scripts/DML.sql](scripts/DML.sql))
-- Детальний звіт про структуру БД ([docs/schema.md](docs/schema.md))
-- Докази виконання ([laboratory #2/evidence/](laboratory%20%232/evidence/))
+- Повний DDL скрипт ([DDL.sql](scripts/DDL.sql))
+- Скрипт наповнення даними ([DML.sql](scripts/DML.sql))
+- Детальний звіт про структуру БД ([schema.md](docs/schema.md))
 
 **Технічні особливості:**
 - Наслідування типів користувачів (Table-per-Type approach)
@@ -47,6 +46,8 @@
 - **Моделювання:** PlantUML (для ER-діаграм)
 - **Контроль версій:** Git
 - **Документація:** Markdown
+- **Контейнеризація:** Docker
+- **Інструменти адміністрування:** pgAdmin 4
 
 ## Основні можливості системи
 
