@@ -13,8 +13,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/DDL.sql:/docker-entrypoint-initdb.d/01-ddl.sql:ro
-      # Uncomment the following line to load test data
-      # - ./scripts/DML.sql:/docker-entrypoint-initdb.d/02-dml.sql:ro
     command: >
       postgres
       -c log_destination=stderr
