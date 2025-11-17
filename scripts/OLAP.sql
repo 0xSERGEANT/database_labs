@@ -3,10 +3,36 @@ SELECT
 	COUNT(t.*) AS total_tutors
 FROM tutor t;
 
+-- Знайти id репетитора з найвищою ціною за урок 
+SELECT 
+	MAX(ts.hourly_rate) AS max_rate
+FROM tutor_subject ts;
+
 -- Кількість унікальних предметів, які викладають репетитори
 SELECT
 	COUNT(DISTINCT ts.subject_id) as unique_subject_taught
 FROM tutor_subject ts;
+
+-- Порахувати загальну кількість підтверджених бронювань
+SELECT 
+	COUNT(b.*) AS booking_completed
+FROM booking b
+WHERE b.status = 'completed';
+
+-- Знайти середню вартість заняття у кожного репетитора
+SELECT 
+	ts.tutor_id 
+	, AVG(hourly_rate) AS average_rate
+FROM tutor_subject ts 
+GROUP BY ts.tutor_id;
+
+-- Знайти кількість завершених бронювать для кожного репетитора 
+SELECT 
+	COUNT(b.*) AS nunber_of_cmpl_bk
+	, tutor_id
+FROM booking b
+WHERE b.status = 'completed'
+GROUP BY b.tutor_id;
 
 -- Розрахувати мінімальну, максимальну та середню погодинну ставку для кожного репетитора
 SELECT
@@ -27,38 +53,8 @@ GROUP BY ts.tutor_id
 HAVING COUNT(ts.*) > 3
 ORDER BY ts.tutor_id DESC;
 
--- Знайти загальну кількість репетиторів
-SELECT 
-	COUNT(t.*) AS count_tutor
-FROM tutor t;
-
--- Порахувати загальну кількість підтверджених бронювань
-SELECT 
-	COUNT(b.*) AS booking_completed
-FROM booking b
-WHERE b.status = 'completed';
-
--- Знайти id репетитора з найвищою ціною за урок 
-SELECT 
-	MAX(ts.hourly_rate) AS max_rate
-FROM tutor_subject ts;
-
--- Знайти середню вартість заняття у кожного репетитора
-SELECT 
-	ts.tutor_id 
-	, AVG(hourly_rate) AS average_rate
-FROM tutor_subject ts 
-GROUP BY ts.tutor_id;
-
--- Знайти кількість завершених бронювать для кожного репетитора 
-SELECT 
-	COUNT(b.*) AS nunber_of_cmpl_bk
-	, tutor_id
-FROM booking b
-WHERE b.status = 'completed'
-GROUP BY b.tutor_id;
-
 ------------------------------------------------------------------------------------------------------------------------
+
 -- Знайти всіх репетиторів, які не мають жодного відгуку 
 SELECT 
 	t.tutor_id
