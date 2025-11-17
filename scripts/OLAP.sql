@@ -27,7 +27,67 @@ GROUP BY ts.tutor_id
 HAVING COUNT(ts.*) > 3
 ORDER BY ts.tutor_id DESC;
 
+-- Знайти загальну кількість репетиторів
+SELECT 
+	COUNT(t.*) AS count_tutor
+FROM tutor t;
+
+-- Порахувати загальну кількість підтверджених бронювань
+SELECT 
+	COUNT(b.*) AS booking_completed
+FROM booking b
+WHERE b.status = 'completed';
+
+-- Знайти id репетитора з найвищою ціною за урок 
+SELECT 
+	MAX(ts.hourly_rate) AS max_rate
+FROM tutor_subject ts;
+
+-- Знайти середню вартість заняття у кожного репетитора
+SELECT 
+	ts.tutor_id 
+	, AVG(hourly_rate) AS average_rate
+FROM tutor_subject ts 
+GROUP BY ts.tutor_id;
+
+-- Знайти кількість завершених бронювать для кожного репетитора 
+SELECT 
+	COUNT(b.*) AS nunber_of_cmpl_bk
+	, tutor_id
+FROM booking b
+WHERE b.status = 'completed'
+GROUP BY b.tutor_id;
+
 ------------------------------------------------------------------------------------------------------------------------
+-- Знайти всіх репетиторів, які не мають жодного відгуку 
+SELECT 
+	t.tutor_id
+	, r.review_id
+FROM tutor t 
+LEFT JOIN review r USING(tutor_id) 
+WHERE r.review_id IS NULL;
+
+-- Вивести усі бронювання і відгуки до них (якщо відгуку немає показати "відсутній")
+SELECT 
+	b.booking_id 
+	, b.status
+	, r.rating
+	, COALESCE(r.comment, 'відсутній') AS comment
+FROM booking b
+LEFT JOIN review r USING(booking_id);
+
+-- Вивести імена усіх репетиторів, назви предметів, які вони викладають та їх ціну за занятті відповідно до предметів
+SELECT 
+	CONCAT_WS(' ', u.first_name, u.last_name) AS full_name
+	, s.name AS subject_name
+	, tl.name AS level_name
+	, ts.hourly_rate
+FROM "user" u
+INNER JOIN tutor t ON u.user_id = t.tutor_id
+INNER JOIN tutor_subject ts USING(tutor_id)
+INNER JOIN subject s USING(subject_id)
+INNER JOIN teaching_level tl USING(level_id)
+ORDER BY full_name;
 
 -- Отримати список репетиторів разом із їхніми рейтингами на основі відгуків студентів
 SELECT
@@ -95,3 +155,45 @@ AND b.booking_id IN (
 	SELECT rev.booking_id
 	FROM review rev
 );
+
+-- Знайти всі відгуки з мінімальною оцінкою 
+SELECT
+	r.rating 
+	, r.comment 
+FROM review r 
+WHERE r.rating = (
+	SELECT 
+		MIN(rating)
+	FROM review 
+);
+
+-- Знайти студента з ім'ям 'Анна Сідоренко' та отримати всі його дані зі студентської таблиці
+SELECT 
+	s.* 
+FROM student s
+WHERE student_id = (
+	SELECT user_id 
+	FROM "user" 
+	WHERE first_name = 'Анна' AND last_name = 'Сідоренко'
+);
+
+-- Знайти всіх користувачів, які є студентами старших класів (школа 10-11 класи)
+SELECT 
+	u.* 
+FROM "user" u
+WHERE user_id IN (
+	SELECT student_id 
+	FROM student 
+	WHERE school_grade > 9
+);
+
+-- АБО:
+WITH high_school_grade AS (
+	SELECT student_id 
+	FROM student 
+	WHERE school_grade > 9
+)
+SELECT 
+	u.* 
+FROM "user" u
+INNER JOIN high_school_grade ON high_school_grade.student_id = u.user_id;
