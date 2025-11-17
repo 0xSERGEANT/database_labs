@@ -31,14 +31,14 @@ ORDER BY ts.tutor_id DESC;
 
 -- Отримати список репетиторів разом із їхніми рейтингами на основі відгуків студентів
 SELECT
-	u.first_name || ' ' || u.last_name AS tutor_full_name
+	CONCAT_WS(' ', u.first_name, u.last_name) AS tutor_full_name
 	, rev.rating
 FROM "user" u
 INNER JOIN review rev ON u.user_id = rev.tutor_id;
 
 -- Отримати список усіх студентів разом із їхніми бронюваннями та статусами бронювань
 SELECT
-	u.first_name || ' ' || u.last_name AS tutor_full_name
+	CONCAT_WS(' ', u.first_name, u.last_name) AS student_full_name
     , b.booking_id
     , b.status
 FROM "user" AS u
@@ -48,7 +48,7 @@ WHERE u.user_type = 'student';
 -- Вивести топ-5 репетиторів, відсортованих за їхнім середнім рейтингом, 
 -- показати для кожного з них кількість завершених уроків та середню вартість одного уроку
 SELECT 
-    u.first_name || ' ' || u.last_name AS tutor_name
+    CONCAT_WS(' ', u.first_name, u.last_name) AS tutor_name
     , ROUND(AVG(rev.rating), 2) AS average_rating
     , COUNT(DISTINCT b.booking_id) AS completed_lessons
     , ROUND(AVG(ts.hourly_rate), 2) AS avg_lesson_cost
@@ -74,7 +74,7 @@ WHERE s.subject_id NOT IN (
 
 -- Знайти всіх учнів, що ніколи не мали жодних бронювань
 SELECT
-	u.first_name || ' ' || u.last_name AS student_full_name
+	CONCAT_WS(' ', u.first_name, u.last_name) AS student_full_name
 	, u.email as student_email
 FROM "user" u
 WHERE u.user_type = 'student'
@@ -86,9 +86,9 @@ AND u.user_id NOT IN (
 -- Показати ID усіх завершених бронювань, на які студенти залишили відгук
 SELECT
 	b.booking_id
-	, student_id
-	, tutor_id
-	, created_at
+	, b.student_id
+	, b.tutor_id
+	, b.created_at
 FROM booking b
 WHERE b.status = 'completed'
 AND b.booking_id IN (
