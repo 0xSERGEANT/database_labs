@@ -193,3 +193,22 @@ SELECT
 	u.* 
 FROM "user" u
 INNER JOIN high_school_grade ON high_school_grade.student_id = u.user_id;
+
+-- Знайти назви всіх предметів, які належать до категорії 'Точні науки'
+SELECT sub.name
+FROM (
+    SELECT name, category 
+    FROM "subject" 
+    WHERE category = 'Точні науки'
+) AS sub;
+
+-- Знайти рівні викладання, де середня вартість заняття вище за середню вартість заняття по всій системі
+SELECT 
+	ts.level_id, 
+	ROUND(AVG(ts.hourly_rate), 2) as average_hourly_rate
+FROM tutor_subject ts
+GROUP BY ts.level_id
+HAVING AVG(ts.hourly_rate) > (
+	SELECT ROUND(AVG(ts.hourly_rate), 2) 
+	FROM tutor_subject ts
+);
