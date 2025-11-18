@@ -114,7 +114,7 @@ LEFT JOIN review rev ON t.tutor_id = rev.tutor_id
 LEFT JOIN booking b ON t.tutor_id = b.tutor_id AND b.status = 'completed'
 LEFT JOIN tutor_subject ts ON t.tutor_id = ts.tutor_id
 GROUP BY t.tutor_id, u.first_name, u.last_name
-ORDER BY t.average_rating DESC;
+ORDER BY average_rating DESC;
 
 ------------------------------------------------------------------------------------------------------------------------
 
