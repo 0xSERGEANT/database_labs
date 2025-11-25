@@ -13,7 +13,7 @@ skinparam arrow {
 
 left to right direction
 
-title Система вибору персонального репетитора - ER діаграма
+title Система вибору персонального репетитора - ER діаграма (3NF)
 
 entity "User" as user {
   P_KEY(user_id)
@@ -25,13 +25,13 @@ entity "User" as user {
   phone
   user_type
   registration_date
+  date_of_birth
 }
 
 entity "Student" as student {
   PF_KEY(student_id)
   F_KEY(city_id)
   --
-  age
   school_grade
 }
 
@@ -39,15 +39,12 @@ entity "Tutor" as tutor {
   PF_KEY(tutor_id)
   F_KEY(city_id)
   --
-  age
   years_experience
   education
   about_me
   online_available
   offline_available
   address
-  average_rating
-  total_reviews
 }
 
 entity "Subject" as subject {
@@ -98,27 +95,24 @@ entity "Booking" as booking {
   P_KEY(booking_id)
   --
   F_KEY(student_id)
-  F_KEY(tutor_id)
-  F_KEY(subject_id)
-  F_KEY(level_id)
   F_KEY(schedule_id)
+  F_KEY(tutor_subject_id)
   format
   status
   created_at
-  notes
 }
 
 entity "Review" as review {
   P_KEY(review_id)
   --
   F_KEY(booking_id)
-  F_KEY(student_id)
-  F_KEY(tutor_id)
   rating
   comment
   created_at
   is_anonymous
 }
+
+' --- ЗВ'ЯЗКИ ---
 
 user ||--|| student : "ISA"
 user ||--|| tutor : "ISA"
@@ -126,23 +120,20 @@ user ||--|| tutor : "ISA"
 city ||--o{ student : "lives_in"
 city ||--o{ tutor : "tutor_located_in"
 
+' Послуги репетитора
 tutor ||--o{ tutor_subject : "offers"
 subject ||--o{ tutor_subject : "taught_as"
 teaching_level ||--o{ tutor_subject : "at_level"
 
+' Розклад
 tutor ||--o{ schedule : "has_schedule"
 
+' Бронювання (Змінено)
 student ||--o{ booking : "books"
-tutor ||--o{ booking : "teaches"
-subject ||--o{ booking : "for_subject"
-teaching_level ||--o{ booking : "at_level"
-
 schedule ||--o| booking : "reserves_slot"
+tutor_subject ||--o{ booking : "specifies_service"
 
+' Відгуки (Змінено)
 booking ||--o| review : "has_review"
-
-student ||--o{ review : "writes"
-tutor ||--o{ review : "receives"
-
 
 @enduml
