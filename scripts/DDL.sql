@@ -59,7 +59,6 @@ CREATE TABLE IF NOT EXISTS "user"
     last_name VARCHAR(100) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    birth_date DATE,
     phone VARCHAR(20),
     user_type user_type NOT NULL,
     registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -87,15 +86,15 @@ CREATE TABLE IF NOT EXISTS "tutor"
 (
     tutor_id INTEGER PRIMARY KEY,
     city_id INTEGER,
-    -- age SMALLINT NOT NULL,
+    age SMALLINT NOT NULL,
     years_experience SMALLINT NOT NULL DEFAULT 0,
     education TEXT NOT NULL,
     about_me TEXT,
     online_available BOOLEAN NOT NULL DEFAULT TRUE,
     offline_available BOOLEAN NOT NULL DEFAULT TRUE,
     address TEXT,
-    -- average_rating DECIMAL(3, 2) DEFAULT 0.00,
-    -- total_reviews INTEGER DEFAULT 0,
+    average_rating DECIMAL(3, 2) DEFAULT 0.00,
+    total_reviews INTEGER DEFAULT 0,
 
     CONSTRAINT tutor_user_fk
         FOREIGN KEY (tutor_id) 
@@ -176,7 +175,6 @@ CREATE TABLE IF NOT EXISTS "booking"
 (
     booking_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     student_id INTEGER NOT NULL,
-    tutor_subject_id INTEGER NOT NULL,
     tutor_id INTEGER NOT NULL,
     subject_id INTEGER NOT NULL,
     level_id INTEGER NOT NULL,
@@ -189,11 +187,6 @@ CREATE TABLE IF NOT EXISTS "booking"
     CONSTRAINT booking_student_fk
         FOREIGN KEY (student_id) 
         REFERENCES "student" (student_id) 
-        ON DELETE CASCADE,
-    
-    CONSTRAINT booking_tutor_subject_fk
-        FOREIGN KEY (tutor_subject_id) 
-        REFERENCES "tutor_subject" (tutor_subject_id)
         ON DELETE CASCADE,
     
     CONSTRAINT booking_tutor_fk
@@ -224,8 +217,8 @@ CREATE TABLE IF NOT EXISTS "review"
 (
     review_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     booking_id INTEGER NOT NULL UNIQUE,
-    -- student_id INTEGER NOT NULL,
-    -- tutor_id INTEGER NOT NULL,
+    student_id INTEGER NOT NULL,
+    tutor_id INTEGER NOT NULL,
     rating SMALLINT NOT NULL,
     comment TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -236,15 +229,15 @@ CREATE TABLE IF NOT EXISTS "review"
         REFERENCES "booking" (booking_id) 
         ON DELETE CASCADE,
     
-    -- CONSTRAINT review_student_fk
-    --     FOREIGN KEY (student_id) 
-    --     REFERENCES "student" (student_id) 
-    --     ON DELETE CASCADE,
+    CONSTRAINT review_student_fk
+        FOREIGN KEY (student_id) 
+        REFERENCES "student" (student_id) 
+        ON DELETE CASCADE,
     
-    -- CONSTRAINT review_tutor_fk
-    --     FOREIGN KEY (tutor_id) 
-    --     REFERENCES "tutor" (tutor_id) 
-    --     ON DELETE CASCADE,
+    CONSTRAINT review_tutor_fk
+        FOREIGN KEY (tutor_id) 
+        REFERENCES "tutor" (tutor_id) 
+        ON DELETE CASCADE,
 
     CONSTRAINT review_comment_length
         CHECK (length(comment) <= 1500)
@@ -252,17 +245,31 @@ CREATE TABLE IF NOT EXISTS "review"
 
 
 -- 3NF Adjustments
+ALTER TABLE "user" 
+ADD COLUMN IF NOT EXISTS date_of_birth DATE;
+
 ALTER TABLE "student" 
 DROP COLUMN IF EXISTS age;
+
+ALTER TABLE "tutor" 
+DROP COLUMN IF EXISTS age,
+DROP COLUMN IF EXISTS average_rating, 
+DROP COLUMN IF EXISTS total_reviews;
 
 ALTER TABLE "booking" 
 DROP COLUMN IF EXISTS tutor_id,
 DROP COLUMN IF EXISTS subject_id,
 DROP COLUMN IF EXISTS level_id,
-DROP COLUMN IF EXISTS notes;
+DROP COLUMN IF EXISTS notes,
+ADD COLUMN IF NOT EXISTS tutor_subject_id INTEGER NOT NULL,
+ADD CONSTRAINT booking_tutor_subject_fk
+    FOREIGN KEY (tutor_subject_id) 
+    REFERENCES "tutor_subject" (tutor_subject_id)
+    ON DELETE CASCADE;
 
--- Continue here
--- ...
+ALTER TABLE "review" 
+DROP COLUMN IF EXISTS student_id,
+DROP COLUMN IF EXISTS tutor_id;
 
 
 -- To drop all tables (if needed), uncomment the block below
