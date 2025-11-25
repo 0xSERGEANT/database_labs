@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS "student"
 (
     student_id INTEGER PRIMARY KEY,
     city_id INTEGER,
-    -- age SMALLINT,
+    age SMALLINT,
     school_grade SMALLINT,
 
     CONSTRAINT student_user_fk
@@ -177,14 +177,14 @@ CREATE TABLE IF NOT EXISTS "booking"
     booking_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     student_id INTEGER NOT NULL,
     tutor_subject_id INTEGER NOT NULL,
-    -- tutor_id INTEGER NOT NULL,
-    -- subject_id INTEGER NOT NULL,
-    -- level_id INTEGER NOT NULL,
+    tutor_id INTEGER NOT NULL,
+    subject_id INTEGER NOT NULL,
+    level_id INTEGER NOT NULL,
     schedule_id INTEGER NOT NULL UNIQUE,
     format booking_format NOT NULL,
     status booking_status NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    -- notes TEXT,
+    notes TEXT,
 
     CONSTRAINT booking_student_fk
         FOREIGN KEY (student_id) 
@@ -196,20 +196,28 @@ CREATE TABLE IF NOT EXISTS "booking"
         REFERENCES "tutor_subject" (tutor_subject_id)
         ON DELETE CASCADE,
     
-    -- CONSTRAINT booking_tutor_fk
-    --     FOREIGN KEY (tutor_id) REFERENCES "tutor" (tutor_id) ON DELETE CASCADE,
-    -- CONSTRAINT booking_subject_fk
-    --     FOREIGN KEY (subject_id) REFERENCES "subject" (subject_id) ON DELETE CASCADE,
-    -- CONSTRAINT booking_level_fk
-    --     FOREIGN KEY (level_id) REFERENCES "teaching_level" (level_id) ON DELETE CASCADE,
+    CONSTRAINT booking_tutor_fk
+        FOREIGN KEY (tutor_id) 
+        REFERENCES "tutor" (tutor_id) 
+        ON DELETE CASCADE,
+    
+    CONSTRAINT booking_subject_fk
+        FOREIGN KEY (subject_id) 
+        REFERENCES "subject" (subject_id) 
+        ON DELETE CASCADE,
+    
+    CONSTRAINT booking_level_fk
+        FOREIGN KEY (level_id) 
+        REFERENCES "teaching_level" (level_id) 
+        ON DELETE CASCADE,
     
     CONSTRAINT booking_schedule_fk
         FOREIGN KEY (schedule_id) 
         REFERENCES "schedule" (schedule_id) 
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
 
-    -- CONSTRAINT booking_notes_length
-    --     CHECK (length(notes) <= 500)
+    CONSTRAINT booking_notes_length
+        CHECK (length(notes) <= 500)
 );
 
 CREATE TABLE IF NOT EXISTS "review"
@@ -241,6 +249,20 @@ CREATE TABLE IF NOT EXISTS "review"
     CONSTRAINT review_comment_length
         CHECK (length(comment) <= 1500)
 );
+
+
+-- 3NF Adjustments
+ALTER TABLE "student" 
+DROP COLUMN IF EXISTS age;
+
+ALTER TABLE "booking" 
+DROP COLUMN IF EXISTS tutor_id,
+DROP COLUMN IF EXISTS subject_id,
+DROP COLUMN IF EXISTS level_id,
+DROP COLUMN IF EXISTS notes;
+
+-- Continue here
+-- ...
 
 
 -- To drop all tables (if needed), uncomment the block below
