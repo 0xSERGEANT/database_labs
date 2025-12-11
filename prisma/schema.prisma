@@ -18,6 +18,7 @@ model booking {
   schedule         schedule       @relation(fields: [schedule_id], references: [schedule_id], onDelete: Cascade, onUpdate: NoAction, map: "booking_schedule_fk")
   student          student        @relation(fields: [student_id], references: [student_id], onDelete: Cascade, onUpdate: NoAction, map: "booking_student_fk")
   tutor_subject    tutor_subject  @relation(fields: [tutor_subject_id], references: [tutor_subject_id], onDelete: Cascade, onUpdate: NoAction, map: "booking_tutor_subject_fk")
+  payment          payment?
   review           review?
 }
 
@@ -32,6 +33,16 @@ model city {
   @@unique([name, region, country], map: "city_unique_location")
 }
 
+model payment {
+  payment_id   Int      @id @default(autoincrement())
+  booking_id   Int      @unique
+  amount       Decimal  @db.Decimal(10, 2)
+  payment_date DateTime @default(now()) @db.Timestamptz(6)
+  status       String   @default("success") @db.VarChar(50)
+  
+  booking      booking  @relation(fields: [booking_id], references: [booking_id], onDelete: Cascade)
+}
+
 model review {
   review_id    Int       @id @default(autoincrement())
   booking_id   Int       @unique
@@ -42,7 +53,6 @@ model review {
   booking      booking   @relation(fields: [booking_id], references: [booking_id], onDelete: Cascade, onUpdate: NoAction, map: "review_booking_fk")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model schedule {
   schedule_id  Int       @id @default(autoincrement())
   tutor_id     Int
@@ -74,7 +84,6 @@ model subject {
   tutor_subject tutor_subject[]
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model teaching_level {
   level_id      Int             @id @default(autoincrement())
   name          String          @unique @db.VarChar(100)
@@ -83,7 +92,6 @@ model teaching_level {
   tutor_subject tutor_subject[]
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model tutor {
   tutor_id          Int             @id
   city_id           Int?
