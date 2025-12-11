@@ -25,12 +25,11 @@ model booking {
 model city {
   city_id Int       @id @default(autoincrement())
   name    String    @db.VarChar(100)
-  region  String?   @db.VarChar(100)
   country String    @default("Україна") @db.VarChar(100)
   student student[]
   tutor   tutor[]
 
-  @@unique([name, region, country], map: "city_unique_location")
+  @@unique([name, country], map: "city_unique_location")
 }
 
 model payment {
