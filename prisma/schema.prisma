@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model booking {
+  booking_id       Int            @id @default(autoincrement())
+  student_id       Int
+  tutor_subject_id Int
+  schedule_id      Int            @unique
+  format           booking_format
+  status           booking_status @default(pending)
+  created_at       DateTime?      @default(now()) @db.Timestamptz(6)
+  schedule         schedule       @relation(fields: [schedule_id], references: [schedule_id], onDelete: Cascade, onUpdate: NoAction, map: "booking_schedule_fk")
+  student          student        @relation(fields: [student_id], references: [student_id], onDelete: Cascade, onUpdate: NoAction, map: "booking_student_fk")
+  tutor_subject    tutor_subject  @relation(fields: [tutor_subject_id], references: [tutor_subject_id], onDelete: Cascade, onUpdate: NoAction, map: "booking_tutor_subject_fk")
+  review           review?
+}
+
+model city {
+  city_id Int       @id @default(autoincrement())
+  name    String    @db.VarChar(100)
+  region  String?   @db.VarChar(100)
+  country String    @default("Україна") @db.VarChar(100)
+  student student[]
+  tutor   tutor[]
+
+  @@unique([name, region, country], map: "city_unique_location")
+}
+
+model review {
+  review_id    Int       @id @default(autoincrement())
+  booking_id   Int       @unique
+  rating       Int       @db.SmallInt
+  comment      String?
+  created_at   DateTime? @default(now()) @db.Timestamptz(6)
+  is_anonymous Boolean   @default(false)
+  booking      booking   @relation(fields: [booking_id], references: [booking_id], onDelete: Cascade, onUpdate: NoAction, map: "review_booking_fk")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model schedule {
+  schedule_id  Int       @id @default(autoincrement())
+  tutor_id     Int
+  date         DateTime  @db.Date
+  start_time   DateTime  @db.Time(6)
+  end_time     DateTime  @db.Time(6)
+  is_available Boolean   @default(true)
+  created_at   DateTime? @default(now()) @db.Timestamptz(6)
+  booking      booking?
+  tutor        tutor     @relation(fields: [tutor_id], references: [tutor_id], onDelete: Cascade, onUpdate: NoAction, map: "schedule_tutor_fk")
+
+  @@unique([tutor_id, date, start_time, end_time], map: "schedule_unique_slot")
+}
+
+model student {
+  student_id   Int       @id
+  city_id      Int?
+  school_grade Int?      @db.SmallInt
+  booking      booking[]
+  city         city?     @relation(fields: [city_id], references: [city_id], onUpdate: NoAction, map: "student_city_fk")
+  user         user      @relation(fields: [student_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "student_user_fk")
+}
+
+model subject {
+  subject_id    Int             @id @default(autoincrement())
+  name          String          @unique @db.VarChar(100)
+  category      String          @db.VarChar(100)
+  description   String?
+  tutor_subject tutor_subject[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model teaching_level {
+  level_id      Int             @id @default(autoincrement())
+  name          String          @unique @db.VarChar(100)
+  position      Int             @unique @db.SmallInt
+  description   String?
+  tutor_subject tutor_subject[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model tutor {
+  tutor_id          Int             @id
+  city_id           Int?
+  years_experience  Int             @default(0) @db.SmallInt
+  education         String
+  about_me          String?
+  online_available  Boolean         @default(true)
+  offline_available Boolean         @default(true)
+  address           String?
+  schedule          schedule[]
+  city              city?           @relation(fields: [city_id], references: [city_id], onUpdate: NoAction, map: "tutor_city_fk")
+  user              user            @relation(fields: [tutor_id], references: [user_id], onDelete: Cascade, onUpdate: NoAction, map: "tutor_user_fk")
+  tutor_subject     tutor_subject[]
+}
+
+model tutor_subject {
+  tutor_subject_id Int            @id @default(autoincrement())
+  tutor_id         Int
+  subject_id       Int
+  level_id         Int
+  hourly_rate      Decimal        @db.Decimal(8, 2)
+  booking          booking[]
+  teaching_level   teaching_level @relation(fields: [level_id], references: [level_id], onDelete: Cascade, onUpdate: NoAction, map: "ts_level_fk")
+  subject          subject        @relation(fields: [subject_id], references: [subject_id], onDelete: Cascade, onUpdate: NoAction, map: "ts_subject_fk")
+  tutor            tutor          @relation(fields: [tutor_id], references: [tutor_id], onDelete: Cascade, onUpdate: NoAction, map: "ts_tutor_fk")
+
+  @@unique([tutor_id, subject_id, level_id], map: "ts_unique_combination")
+}
+
+model user {
+  user_id           Int       @id @default(autoincrement())
+  first_name        String    @db.VarChar(100)
+  last_name         String    @db.VarChar(100)
+  email             String    @unique @db.VarChar(255)
+  password_hash     String    @db.VarChar(255)
+  phone             String?   @unique @db.VarChar(20)
+  user_type         user_type
+  date_of_birth     DateTime? @db.Date
+  registration_date DateTime? @default(now()) @db.Timestamptz(6)
+  student           student?
+  tutor             tutor?
+}
+
+enum booking_format {
+  online
+  offline
+}
+
+enum booking_status {
+  pending
+  confirmed
+  completed
+  cancelled
+}
+
+enum user_type {
+  student
+  tutor
+}

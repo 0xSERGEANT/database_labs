@@ -55,3 +55,10 @@ nunit-*.xml
 
 # Environment / sensitive configuration files
 .env
+
+# Node.js dependencies
+node_modules/
+pnpm-lock.yaml
+
+# Prisma generated client
+/generated/prisma

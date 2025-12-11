@@ -1,0 +1,17 @@
+{
+  "name": "hands-on-databases",
+  "version": "1.0.0",
+  "description": "KPI's 3rd semester suffering is finally coming to an end.",
+  "main": "dist/index.js",
+  "scripts": {},
+  "dependencies": {
+    "@prisma/client": "^7.1.0"
+  },
+  "devDependencies": {
+    "prisma": "^7.1.0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.25.0"
+}
