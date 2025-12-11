@@ -127,6 +127,7 @@ model user {
   last_name         String    @db.VarChar(100)
   email             String    @unique @db.VarChar(255)
   password_hash     String    @db.VarChar(255)
+  avatar_url        String?   @db.VarChar(500)
   phone             String?   @unique @db.VarChar(20)
   user_type         user_type
   date_of_birth     DateTime? @db.Date
