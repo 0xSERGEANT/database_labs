@@ -4,9 +4,6 @@ $$
         IF NOT EXISTS(SELECT 1 FROM pg_type WHERE typname = 'user_type') THEN
             CREATE TYPE user_type AS ENUM ('student', 'tutor');
         END IF;
-        IF NOT EXISTS(SELECT 1 FROM pg_type WHERE typname = 'subject_category') THEN
-            CREATE TYPE subject_category AS ENUM ('Точні науки', 'Природничі науки', 'Гуманітарні науки', 'Іноземні мови', 'Мистецтво');
-        END IF;
         IF NOT EXISTS(SELECT 1 FROM pg_type WHERE typname = 'booking_format') THEN
             CREATE TYPE booking_format AS ENUM ('online', 'offline');
         END IF;
@@ -20,9 +17,9 @@ $$ language plpgsql;
 CREATE TABLE IF NOT EXISTS "city"
 (
     city_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    region VARCHAR(100),
-    country VARCHAR(100) NOT NULL DEFAULT 'Україна',
+    name CHARACTER VARYING(100) NOT NULL,
+    region CHARACTER VARYING(100),
+    country CHARACTER VARYING(100) NOT NULL DEFAULT 'Україна',
 
     CONSTRAINT city_unique_location
         UNIQUE (name, region, country)
@@ -31,44 +28,39 @@ CREATE TABLE IF NOT EXISTS "city"
 CREATE TABLE IF NOT EXISTS "subject"
 (
     subject_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE,
-    category subject_category NOT NULL,
-    description TEXT,
-
-    CONSTRAINT subject_description_length
-        CHECK (LENGTH(description) <= 500)
+    name CHARACTER VARYING(100) NOT NULL UNIQUE,
+    category CHARACTER VARYING(100) NOT NULL,
+    description TEXT
 );
 
 CREATE TABLE IF NOT EXISTS "teaching_level"
 (
     level_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE,
+    name CHARACTER VARYING(100) NOT NULL UNIQUE,
     position SMALLINT NOT NULL UNIQUE,
     description TEXT,
   
     CONSTRAINT level_position_positive
-        CHECK (position > 0),
-    CONSTRAINT level_description_length
-        CHECK (LENGTH(description) <= 300)
+        CHECK (position > 0)
 );
 
 CREATE TABLE IF NOT EXISTS "user"
 (
     user_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    phone VARCHAR(20),
+    first_name CHARACTER VARYING(100) NOT NULL,
+    last_name CHARACTER VARYING(100) NOT NULL,
+    email CHARACTER VARYING(255) NOT NULL UNIQUE,
+    password_hash CHARACTER VARYING(255) NOT NULL,
+    phone CHARACTER VARYING(20) UNIQUE,
     user_type user_type NOT NULL,
-    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    date_of_birth DATE,
+    registration_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS "student"
 (
     student_id INTEGER PRIMARY KEY,
     city_id INTEGER,
-    age SMALLINT,
     school_grade SMALLINT,
 
     CONSTRAINT student_user_fk
@@ -86,15 +78,12 @@ CREATE TABLE IF NOT EXISTS "tutor"
 (
     tutor_id INTEGER PRIMARY KEY,
     city_id INTEGER,
-    age SMALLINT NOT NULL,
     years_experience SMALLINT NOT NULL DEFAULT 0,
     education TEXT NOT NULL,
     about_me TEXT,
     online_available BOOLEAN NOT NULL DEFAULT TRUE,
     offline_available BOOLEAN NOT NULL DEFAULT TRUE,
     address TEXT,
-    average_rating DECIMAL(3, 2) DEFAULT 0.00,
-    total_reviews INTEGER DEFAULT 0,
 
     CONSTRAINT tutor_user_fk
         FOREIGN KEY (tutor_id) 
@@ -109,14 +98,7 @@ CREATE TABLE IF NOT EXISTS "tutor"
     CONSTRAINT tutor_availability_check
         CHECK (online_available = TRUE OR offline_available = TRUE),
     CONSTRAINT tutor_offline_requirements
-        CHECK (
-            offline_available = FALSE OR
-            (offline_available = TRUE AND city_id IS NOT NULL AND address IS NOT NULL)),
-    
-    CONSTRAINT tutor_about_me_length
-        CHECK (LENGTH(about_me) <= 2000),
-    CONSTRAINT tutor_address_length
-        CHECK (LENGTH(address) <= 500)
+        CHECK (offline_available = FALSE OR (offline_available = TRUE AND city_id IS NOT NULL AND address IS NOT NULL))
 );
 
 CREATE TABLE IF NOT EXISTS "tutor_subject"
@@ -154,7 +136,7 @@ CREATE TABLE IF NOT EXISTS "schedule"
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
     is_available BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT schedule_tutor_fk
         FOREIGN KEY (tutor_id) 
@@ -175,101 +157,42 @@ CREATE TABLE IF NOT EXISTS "booking"
 (
     booking_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     student_id INTEGER NOT NULL,
-    tutor_id INTEGER NOT NULL,
-    subject_id INTEGER NOT NULL,
-    level_id INTEGER NOT NULL,
+    tutor_subject_id INTEGER NOT NULL,
     schedule_id INTEGER NOT NULL UNIQUE,
     format booking_format NOT NULL,
     status booking_status NOT NULL DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT booking_student_fk
         FOREIGN KEY (student_id) 
         REFERENCES "student" (student_id) 
         ON DELETE CASCADE,
     
-    CONSTRAINT booking_tutor_fk
-        FOREIGN KEY (tutor_id) 
-        REFERENCES "tutor" (tutor_id) 
-        ON DELETE CASCADE,
-    
-    CONSTRAINT booking_subject_fk
-        FOREIGN KEY (subject_id) 
-        REFERENCES "subject" (subject_id) 
-        ON DELETE CASCADE,
-    
-    CONSTRAINT booking_level_fk
-        FOREIGN KEY (level_id) 
-        REFERENCES "teaching_level" (level_id) 
+    CONSTRAINT booking_tutor_subject_fk
+        FOREIGN KEY (tutor_subject_id)
+        REFERENCES "tutor_subject" (tutor_subject_id)
         ON DELETE CASCADE,
     
     CONSTRAINT booking_schedule_fk
         FOREIGN KEY (schedule_id) 
         REFERENCES "schedule" (schedule_id) 
-        ON DELETE CASCADE,
-
-    CONSTRAINT booking_notes_length
-        CHECK (length(notes) <= 500)
+        ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS "review"
 (
     review_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     booking_id INTEGER NOT NULL UNIQUE,
-    student_id INTEGER NOT NULL,
-    tutor_id INTEGER NOT NULL,
     rating SMALLINT NOT NULL,
     comment TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     is_anonymous BOOLEAN NOT NULL DEFAULT FALSE,
 
     CONSTRAINT review_booking_fk
         FOREIGN KEY (booking_id) 
         REFERENCES "booking" (booking_id) 
-        ON DELETE CASCADE,
-    
-    CONSTRAINT review_student_fk
-        FOREIGN KEY (student_id) 
-        REFERENCES "student" (student_id) 
-        ON DELETE CASCADE,
-    
-    CONSTRAINT review_tutor_fk
-        FOREIGN KEY (tutor_id) 
-        REFERENCES "tutor" (tutor_id) 
-        ON DELETE CASCADE,
-
-    CONSTRAINT review_comment_length
-        CHECK (length(comment) <= 1500)
+        ON DELETE CASCADE
 );
-
-
--- 3NF Adjustments
-ALTER TABLE "user" 
-ADD COLUMN IF NOT EXISTS date_of_birth DATE;
-
-ALTER TABLE "student" 
-DROP COLUMN IF EXISTS age;
-
-ALTER TABLE "tutor" 
-DROP COLUMN IF EXISTS age,
-DROP COLUMN IF EXISTS average_rating, 
-DROP COLUMN IF EXISTS total_reviews;
-
-ALTER TABLE "booking" 
-DROP COLUMN IF EXISTS tutor_id,
-DROP COLUMN IF EXISTS subject_id,
-DROP COLUMN IF EXISTS level_id,
-DROP COLUMN IF EXISTS notes,
-ADD COLUMN IF NOT EXISTS tutor_subject_id INTEGER NOT NULL,
-ADD CONSTRAINT booking_tutor_subject_fk
-    FOREIGN KEY (tutor_subject_id) 
-    REFERENCES "tutor_subject" (tutor_subject_id)
-    ON DELETE CASCADE;
-
-ALTER TABLE "review" 
-DROP COLUMN IF EXISTS student_id,
-DROP COLUMN IF EXISTS tutor_id;
 
 
 -- To drop all tables (if needed), uncomment the block below
