@@ -59,6 +59,7 @@ nunit-*.xml
 # Node.js dependencies
 node_modules/
 pnpm-lock.yaml
+dist/
 
 # Prisma generated client
 /generated/prisma
